@@ -370,14 +370,10 @@ public struct LiquidGlassControlPanel: View {
 
                     Spacer()
 
-                    Picker("", selection: $settings.language) {
-                        ForEach(AppLanguage.allCases) { language in
-                            Text(language.title).tag(language)
-                        }
+                    LanguagePicker(selection: settings.language, usesChinese: settings.usesChinese) {
+                        settings.language = $0
                     }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .frame(width: 220)
+                    .equatable()
                 }
             }
         }
@@ -653,6 +649,30 @@ public struct LiquidGlassControlPanel: View {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.desktopscreeneffect?ScreenSaver") {
             NSWorkspace.shared.open(url)
         }
+    }
+}
+
+// MARK: - Language Picker
+// Equatable, so panel refreshes that leave the language alone skip the segmented
+// control; setting it again replays its selection animation and makes it jitter.
+private struct LanguagePicker: View, Equatable {
+    let selection: AppLanguage
+    let usesChinese: Bool
+    let select: (AppLanguage) -> Void
+
+    static func == (lhs: LanguagePicker, rhs: LanguagePicker) -> Bool {
+        lhs.selection == rhs.selection && lhs.usesChinese == rhs.usesChinese
+    }
+
+    var body: some View {
+        Picker("", selection: Binding(get: { selection }, set: select)) {
+            ForEach(AppLanguage.allCases) { language in
+                Text(language.title).tag(language)
+            }
+        }
+        .labelsHidden()
+        .pickerStyle(.segmented)
+        .frame(width: 220)
     }
 }
 

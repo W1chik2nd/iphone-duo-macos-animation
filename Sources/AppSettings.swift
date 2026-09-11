@@ -156,13 +156,23 @@ public final class AppSettings: ObservableObject {
         }
     }
     @Published public var testTurnValue: Double = 0.0
-    @Published public var currentLidAngle: Double = 120.0
-    @Published public var isSensorConnected: Bool = false
-    @Published public var isClosing: Bool = false
+    // The lid sensor writes these on every 60 Hz tick. Publish only real changes;
+    // otherwise the control panel redraws constantly and its controls jitter.
+    public var currentLidAngle: Double = 120.0 {
+        willSet { if newValue != currentLidAngle { objectWillChange.send() } }
+    }
+    public var isSensorConnected: Bool = false {
+        willSet { if newValue != isSensorConnected { objectWillChange.send() } }
+    }
+    public var isClosing: Bool = false {
+        willSet { if newValue != isClosing { objectWillChange.send() } }
+    }
     @Published public var sensorStatus: SensorStatus = .initializing
     @Published public var hasScreenRecordingPermission: Bool = false
     @Published public var lastCaptureDate: Date? = nil
-    @Published public var isScreenCaptureDormant: Bool = true
+    public var isScreenCaptureDormant: Bool = true {
+        willSet { if newValue != isScreenCaptureDormant { objectWillChange.send() } }
+    }
     
     private init() {
         let defaults = UserDefaults.standard
