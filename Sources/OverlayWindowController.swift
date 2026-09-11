@@ -197,6 +197,7 @@ public final class OverlayWindowController: NSObject {
         // While locked, follow every sensor update without an elapsed-time cutoff.
         // Returning to the open angle hides the overlay; another close can start it again.
         mv.currentTurn = Float(visibleTurn)
+        mv.lidTravel = Float(AppSettings.shared.startTiltAngle - AppSettings.shared.endTiltAngle)
         mv.blurStrength = Float(AppSettings.shared.blurStrength)
         mv.reflectionIntensity = Float(AppSettings.shared.reflectionIntensity)
         
@@ -243,7 +244,11 @@ public final class OverlayWindowController: NSObject {
         guard let win = self.window else { return }
         win.canBecomeVisibleWithoutLogin = AppSettings.shared.enableLockScreenPriority
         let ready = LockScreenSpace.shared.configure(win, enabled: AppSettings.shared.enableLockScreenPriority)
-        AppSettings.shared.lockScreenStatus = ready ? "已配置锁屏接口（待实际开盖验证）" : "锁屏显示接口不可用"
+        if LockScreenSpace.isSIPEnabled {
+            AppSettings.shared.lockScreenStatus = .needsSIPDisabled
+        } else {
+            AppSettings.shared.lockScreenStatus = ready ? .configured : .unavailable
+        }
         if AppSettings.shared.enableLockScreenPriority {
             win.level = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()) + 1)
         } else {
